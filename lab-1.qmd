@@ -4,6 +4,7 @@ subtitle: "Introduction to R"
 author: "Byron C Jaeger"
 format: 
   html: 
+    embed-resources: true
     code-fold: true
     toc: true
 ---
@@ -133,6 +134,10 @@ You may have noticed this document lets you type things inside of code 'chunks',
 ```{r}
 
 # your code goes here
+
+x <- 1
+
+x_plus_1 <- x + 1
 
 ```
 
@@ -274,8 +279,27 @@ summarize(data_birth_weight_by_sex,
 Compute the following: 
 
 1. The mean and median gestational age, overall and by sex.
+
+```{r}
+
+overall <- summarize(data_birth_weight, 
+                     mean_gestage = mean(gestage),
+                     median_gestage = median(gestage))
+
+by_sex <- summarize(data_birth_weight_by_sex, 
+                    mean_gestage = mean(gestage),
+                    median_gestage = median(gestage))
+
+```
+
+
 2. The overall proportion of babies that were girls. Note `sex = 0` means baby girl
 
+```{r}
+
+summarize(data_birth_weight, mean_boy = mean(sex))
+
+```
 
 ## Compute frequencies
 
@@ -361,11 +385,23 @@ From this, you can see that the average systolic blood pressure doesn't appear t
 
 ```{r}
 
+breaks <- seq(20, 100, length.out = 10)
+
 ggplot(data_birth_weight) + 
   aes(x = sbp) + 
   labs(x = "Systolic blood pressure, mm Hg", 
        y = "Number of observations") + 
-  geom_histogram()
+  geom_histogram(bins = 10, color = 'black', fill = 'pink') + 
+  theme_bw() + 
+  theme(panel.grid = element_blank(),
+        text = element_text(size = 18))  +
+  stat_bin(
+    aes(y = after_stat(count), label = after_stat(count)),
+    bins = 10, 
+    geom = "text", 
+    size = 6,
+    vjust = -1/2
+  )
 
 ```
 
@@ -376,7 +412,7 @@ For boxplots, we'll use the `geom_boxplot()` function. Here, we need to be caref
 ```{r}
 
 ggplot(data_birth_weight) + 
-  aes(x = sex, y = sbp) + 
+  aes(x = factor(sex), y = sbp) + 
   labs(x = "Sex", 
        y = "Systolic blood pressure, mm Hg") + 
   geom_boxplot()
@@ -479,7 +515,9 @@ So how does this `%>%` thing work? It simply takes the object on the left hand s
 
 mean(data_birth_weight$sbp)
 
-data_birth_weight$sbp %>% mean()
+data_birth_weight$sbp %>% 
+  mean() %>% 
+  round(digits = 1)
 
 ```
 
@@ -493,5 +531,21 @@ Overall, benefits of using pipes are:
 ## Your turn
 
 Using what we've learned, find the maximum gestational age of baby boys in `data_birth_weight`.
+
+```{r}
+
+# tidyverse!
+
+answer_tidy <- data_birth_weight %>% 
+  filter(sex == "Boy") %>% 
+  arrange(desc(gestage)) %>% 
+  slice(1) %>% 
+  pull(gestage)
+
+# base R!
+answer_base <- max(data_birth_weight$gestage[data_birth_weight$sex == "Boy"])
+
+```
+
 
 
